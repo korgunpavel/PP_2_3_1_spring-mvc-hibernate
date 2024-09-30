@@ -3,59 +3,61 @@ package web.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import web.dao.UserDaoImp;
 import web.model.User;
-import web.service.UserServiceImp;
+import web.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.Valid;
 
 @Controller
 public class UserController {
 
-	private final UserServiceImp userServiceImp;
+    private final UserService userService;
 
-	@Autowired
-    public UserController(UserServiceImp userServiceImp) {
-        this.userServiceImp = userServiceImp;
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping("/")
-	public String users(ModelMap model) {
-		model.addAttribute("users", userServiceImp.index());
+    public String users(ModelMap model) {
+        model.addAttribute("users", userService.index());
 
-		return "index";
-	}
+        return "index";
+    }
 
-	@GetMapping("/new")
-	public String newUser(ModelMap model) {
-		model.addAttribute("user", new User());
+    @GetMapping("/new")
+    public String newUser(ModelMap model) {
+        model.addAttribute("user", new User());
 
-		return "show";
-	}
+        return "show";
+    }
 
-	@PostMapping()
-	public String create(@ModelAttribute("user") User user) {
-		if (user.getId() == null) {
-			userServiceImp.save(user);
-		} else {
-			userServiceImp.update(user.getId(), user);
-		}
-		return "redirect:/";
-	}
+    @PostMapping()
+    public String create(@ModelAttribute("user") @Valid User user, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return "show";
+        }
+        if (user.getId() == null) {
+            userService.save(user);
+        } else {
+            userService.update(user.getId(), user);
+        }
+        return "redirect:/";
+    }
 
-	@GetMapping("/edit")
-	public String edit(@RequestParam(name = "id") Long id, ModelMap model) {
-		User user = userServiceImp.show(id);
-		model.addAttribute("user", user);
-		return "show";
-	}
+    @GetMapping("/edit")
+    public String edit(@RequestParam(name = "id") Long id, ModelMap model) {
+        User user = userService.show(id);
+        model.addAttribute("user", user);
+        return "show";
+    }
 
-	@PostMapping("/delete")
-	public String delete(@RequestParam(name = "id") Long id) {
-		userServiceImp.delete(id);
-		return "redirect:/";
-	}
+    @PostMapping("/delete")
+    public String delete(@RequestParam(name = "id") Long id) {
+        userService.delete(id);
+        return "redirect:/";
+    }
 
 }
